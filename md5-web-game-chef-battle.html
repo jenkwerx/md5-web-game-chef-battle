@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD5 Chef Tournament</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 10px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        #header {
+            display: block;
+        }
+        #header.hidden {
+            display: none;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin: 0 0 5px 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        .setup-screen, .battle-screen, .champion-screen {
+            display: none;
+        }
+        .setup-screen.active, .battle-screen.active, .champion-screen.active {
+            display: block;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .round-info {
+            text-align: center;
+            font-size: 1.4em;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .battle-info {
+            text-align: center;
+            font-size: 1.1em;
+            margin: 10px 0;
+            color: #ffd700;
+        }
+        .bracket {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.2);
+            margin: 15px auto;
+        }
+        .bracket-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .contestant {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .contestant-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .contestant-name {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .dish {
+            font-style: italic;
+            color: #ffd700;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dish-emoji {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+        @media (max-width: 600px) {
+            .contestant-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        .md5-info {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(100, 100, 255, 0.2);
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: #ADD8E6;
+            word-break: break-all;
+            display: none;
+        }
+        .judge-comment {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #90EE90;
+            text-align: center;
+            font-style: normal;
+        }
+        .winner {
+            border-left: 4px solid #4caf50;
+            background: rgba(76, 175, 80, 0.3);
+            transform: scale(1.03);
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        }
+        .winner .contestant-name::after {
+            content: " 🏆";
+        }
+        .loser {
+            opacity: 0.5;
+        }
+        .controls {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .champion {
+            text-align: center;
+            font-size: 2em;
+            margin: 25px 0;
+            padding: 30px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            border-radius: 15px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="header">
+            <h1>🔪 MD5 CHEF 🔪</h1>
+            <p class="subtitle">The Ultimate Culinary Hash Showdown</p>
+        </div>
+        
+        <div class="setup-screen active">
+            <h2 style="font-size: 1.2em;">Enter Contestants (one per line)</h2>
+		<textarea id="contestants" placeholder="Chef Wobbleton Crankshaft&#10;Baron Alfredo Noodlesmith&#10;Madame Spatula von Quench&#10;Sir Basil Thunderwhisk&#10;Clara Picklethorn the Third&#10;..."></textarea>
+            <div class="controls">
+                <button onclick="startTournament()">Start Tournament!</button>
+            </div>
+        </div>
+
+        <div class="battle-screen">
+            <div class="round-info" id="roundInfo"></div>
+            <div class="battle-info" id="battleInfo"></div>
+            <div class="bracket" id="battleBracket"></div>
+            <div class="controls">
+                <button id="revealBtn" onclick="revealWinner()">Reveal Winner!</button>
+                <button id="nextBattleBtn" onclick="nextBattle()" style="display:none;">Next Battle</button>
+            </div>
+        </div>
+
+        <div class="champion-screen">
+            <div class="round-info">🏆 CHAMPION! 🏆</div>
+            <div id="championDiv"></div>
+            <div class="controls">
+                <button onclick="playAgain()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        function md5(str) {
+            return CryptoJS.MD5(str).toString();
+        }
+
+        const adjectives = ["Sultry","Tasty","Luscious","Spicy","Tangy","Zesty","Crispy","Tender","Juicy","Smoky","Bitter","Sweet","Sour","Umami","Savory","Pungent","Aromatic","Fragrant","Delicate","Bold","Robust","Rich","Creamy","Velvety","Silky","Crunchy","Chewy","Fluffy","Dense","Light","Heavy","Moist","Dry","Oily","Greasy","Buttery","Nutty","Earthy","Herbaceous","Floral","Fruity","Citrusy","Tart","Acidic","Alkaline","Metallic","Briny","Salty","Brackish","Fresh","Stale","Rancid","Fermented","Aged","Young","Raw","Cooked","Grilled","Roasted","Baked","Fried","Steamed","Boiled","Poached","Sautéed","Braised","Stewed","Smoked","Cured","Pickled","Marinated","Glazed","Caramelized","Charred","Blackened","Seared","Rare","Medium","Well-done","Overcooked","Undercooked","Burnt","Toasted","Warm","Cold","Hot","Frozen","Chilled","Room-temp","Scalding","Lukewarm","Tepid","Icy","Glacial","Arctic","Tropical","Exotic","Mundane","Boring","Exciting","Mysterious","Suspicious","Questionable","Dubious","Sketchy","Funky","Rank","Foul","Nasty","Gross","Disgusting","Vile","Putrid","Rotten","Spoiled","Moldy","Fuzzy","Slimy","Gooey","Sticky","Tacky","Gummy","Rubbery","Leathery","Tough","Stringy","Fibrous","Mealy","Grainy","Gritty","Sandy","Chalky","Powdery","Dusty","Dirty","Muddy","Murky","Cloudy","Clear","Transparent","Opaque","Translucent","Shiny","Glossy","Matte","Dull","Bright","Vivid","Pale","Dark","Faded","Vibrant","Neon","Fluorescent","Phosphorescent","Luminous","Glowing","Radiant","Brilliant","Sparkling","Twinkling","Shimmering","Glistening","Gleaming","Lustrous","Polished","Sleek","Smooth","Rough","Coarse","Bumpy","Lumpy","Chunky","Thick","Thin","Narrow","Wide","Broad","Slim","Slender","Fat","Plump","Chubby","Round","Square","Rectangular","Triangular","Circular","Oval","Elliptical","Cylindrical","Spherical","Cubical","Prismatic","Pyramidal","Conical","Angular","Curved","Straight","Bent","Twisted","Warped","Crooked","Jagged","Serrated","Notched","Ridged","Grooved","Fluted","Ribbed","Corrugated","Pleated","Folded","Wrinkled","Crinkled","Creased","Rumpled","Disheveled","Tousled","Tangled","Matted","Knotted","Braided","Woven","Knitted","Crocheted","Embroidered","Stitched","Sewn","Patched","Darned","Mended","Repaired","Fixed","Broken","Cracked","Chipped","Dented","Scratched","Scuffed","Worn","Weathered","Antique","Vintage","Retro","Modern","Contemporary","Futuristic","Ancient","Prehistoric"];
+
+        const animals = ["Zebra","Platypus","Aardvark","Albatross","Alligator","Alpaca","Anchovy","Antelope","Armadillo","Axolotl","Baboon","Badger","Barracuda","Basilisk","Beaver","Bison","Boa","Boar","Buffalo","Camel","Capybara","Cassowary","Catfish","Cheetah","Chinchilla","Chipmunk","Civet","Cobra","Cockatoo","Coelacanth","Condor","Cougar","Coyote","Crane","Crocodile","Crow","Dingo","Dolphin","Donkey","Dragonfly","Duck","Dugong","Eagle","Echidna","Eel","Elephant","Elk","Emu","Falcon","Ferret","Flamingo","Fox","Gazelle","Gecko","Giraffe","Gnu","Gorilla","Grouse","Guanaco","Hamster","Hare","Hawk","Hedgehog","Heron","Hippopotamus","Hyena","Ibex","Iguana","Impala","Jackal","Jaguar","Jellyfish","Kangaroo","Kiwi","Koala","Komodo","Krill","Lemming","Lemur","Leopard","Llama","Lobster","Lynx","Macaw","Manatee","Mandrill","Manta","Marmoset","Meerkat","Mongoose","Moose","Narwhal","Newt","Ocelot","Octopus","Okapi","Opossum","Orangutan","Orca","Ostrich","Otter","Owl","Panda","Panther","Parakeet","Peacock","Pelican","Penguin","Pheasant","Porcupine","Prawn","Puffin","Quail","Quokka","Rabbit","Raccoon","Rattlesnake","Raven","Reindeer","Rhinoceros","Salamander","Seahorse","Seal","Shark","Skunk","Sloth","Snail","Sparrow","Squid","Squirrel","Starfish","Stingray","Swan","Tapir","Tarantula","Termite","Toad","Toucan","Turtle","Vulture","Wallaby","Walrus","Warthog","Weasel","Whale","Wildebeest","Wolverine","Wombat","Woodpecker","Yak"];
+
+        const nonAnimals = ["Avocado","Tofu","Kale","Quinoa","Seaweed","Mushroom","Truffle","Artichoke","Asparagus","Bamboo","Beetroot","Broccoli","Brussels-Sprout","Cabbage","Carrot","Cauliflower","Celery","Chard","Chayote","Chickpea","Collard","Corn","Cucumber","Eggplant","Endive","Fennel","Garlic","Ginger","Kohlrabi","Leek","Lentil","Lettuce","Okra","Onion","Parsnip","Pea","Pepper","Potato","Pumpkin","Radish","Rutabaga","Shallot","Spinach","Squash","Tomato","Turnip","Watercress","Yam","Zucchini","Apple","Apricot","Banana","Blackberry","Blueberry","Cherry","Cranberry","Date","Dragon-Fruit","Durian","Elderberry","Fig","Grape","Grapefruit","Guava","Jackfruit","Kiwi-Fruit","Kumquat","Lemon","Lime","Lychee","Mango","Melon","Mulberry","Nectarine","Orange","Papaya","Passion-Fruit","Peach","Pear","Persimmon","Pineapple","Plum","Pomegranate","Quince","Raspberry","Rhubarb","Starfruit","Strawberry","Tangerine","Watermelon","Acai","Agave","Almond","Amaranth","Barley","Buckwheat","Cashew","Chia","Coconut","Flax","Hazelnut","Hemp","Macadamia","Millet","Oat","Pecan","Pistachio","Rice","Rye","Sesame","Sorghum","Sunflower","Walnut","Wheat"];
+
+        const animalDescriptions = ["Tartare","Carpaccio","Sashimi","Wellington","Bourguignon","Stew","Ragout","Casserole","Pot-Pie","Meatloaf","Meatballs","Sausage","Jerky","Pâté","Terrine","Rillettes","Confit","Roulade","Ballotine","Galantine","Fricassee","Goulash","Stroganoff","Scaloppine","Schnitzel","Cutlet","Chop","Steak","Roast","Brisket","Shank","Ribs","Tenderloin","Loin","Shoulder","Leg","Thigh","Breast","Wing","Drumstick","Neck","Back","Belly","Flank","Rump","Sirloin","Chuck","Round","Hock","Knuckle","Trotter","Foot","Tongue","Liver","Heart","Kidney","Spleen","Brain","Sweetbread","Tripe","Intestine","Stomach","Gizzard","Tail","Ear","Snout","Head","Cheek","Jowl","Marrow","Blood","Gravy","Reduction","Surprise","Delight","Extravaganza","Medley","Symphony","Fantasy"];
+
+        const nonAnimalDescriptions = ["Gravy","Reduction","Purée","Mousse","Soufflé","Foam","Emulsion","Coulis","Compote","Chutney","Relish","Jam","Jelly","Marmalade","Butter","Spread","Paste","Dip","Salsa","Guacamole","Hummus","Tzatziki","Salad","Slaw","Tabbouleh","Couscous","Pilaf","Risotto","Paella","Biryani","Fried-Rice","Noodles","Pasta","Lasagna","Ravioli","Gnocchi","Dumpling","Spring-Roll","Samosa","Empanada","Pierogi","Crepe","Pancake","Waffle","Toast","Bagel","Biscuit","Scone","Muffin","Croissant","Danish","Strudel","Turnover","Tart","Pie","Quiche","Frittata","Omelet","Sandwich","Wrap","Burrito","Taco","Quesadilla","Enchilada","Fajita","Nachos","Chips","Fries","Soup","Bisque","Chowder","Stew","Gumbo","Gazpacho","Curry","Korma","Masala","Vindaloo","Tikka","Dosa","Samosa","Surprise","Delight","Extravaganza","Medley","Symphony","Wonder","Dream","Vision","Miracle","Mystery","Fantasy"];
+
+        // Emoji mapping for ingredients - add more as needed
+const ingredientEmojis = {
+
+"Avocado": "🥑",
+  "Tofu": "🍱",
+  "Kale": "🥬",
+  "Quinoa": "🌾",
+  "Seaweed": "🌿",
+  "Mushroom": "🍄",
+  "Truffle": "🍄",
+  "Artichoke": "🌿",
+  "Asparagus": "🥦",
+  "Bamboo": "🎍",
+  "Beetroot": "🫜",
+  "Broccoli": "🥦",
+  "Brussels-Sprout": "🥬",
+  "Cabbage": "🥬",
+  "Carrot": "🥕",
+  "Cauliflower": "🥦",
+  "Celery": "🥬",
+  "Chard": "🥬",
+  "Chayote": "🥒",
+  "Chickpea": "🫘",
+  "Collard": "🥬",
+  "Corn": "🌽",
+  "Cucumber": "🥒",
+  "Eggplant": "🍆",
+  "Endive": "🥬",
+  "Fennel": "🌿",
+  "Garlic": "🧄",
+  "Ginger": "🫚",
+  "Kohlrabi": "🥬",
+  "Leek": "🧅",
+  "Lentil": "🫘",
+  "Lettuce": "🥬",
+  "Okra": "🌿",
+  "Onion": "🧅",
+  "Parsnip": "🥕",
+  "Pea": "🫘",
+  "Pepper": "🌶️",
+  "Potato": "🥔",
+  "Pumpkin": "🎃",
+  "Radish": "🌶️",
+  "Rutabaga": "🥔",
+  "Shallot": "🧅",
+  "Spinach": "🥬",
+  "Squash": "🎃",
+  "Tomato": "🍅",
+  "Turnip": "🥔",
+  "Watercress": "🌿",
+  "Yam": "🍠",
+  "Zucchini": "🥒",
+
+  "Apple": "🍎",
+  "Apricot": "🍑",
+  "Banana": "🍌",
+  "Blackberry": "🫐",
+  "Blueberry": "🫐",
+  "Cherry": "🍒",
+  "Cranberry": "🫐",
+  "Date": "🌴",
+  "Dragon-Fruit": "🐉",
+  "Durian": "🍈",
+  "Elderberry": "🫐",
+ 
+  "Grape": "🍇",
+  "Grapefruit": "🍊",
+  "Guava": "🍈",
+  "Jackfruit": "🍈",
+  "Kiwi-Fruit": "🥝",
+  "Kumquat": "🍊",
+  "Lemon": "🍋",
+  "Lime": "🍋",
+  "Lychee": "🍒",
+  "Mango": "🥭",
+  "Melon": "🍈",
+  "Mulberry": "🫐",
+  "Nectarine": "🍑",
+  "Orange": "🍊",
+  "Papaya": "🥭",
+  "Passion-Fruit": "🥭",
+  "Peach": "🍑",
+  "Pear": "🍐",
+  "Persimmon": "🍅",
+  "Pineapple": "🍍",
+  "Plum": "🍑",
+  "Pomegranate": "🍎",
+  "Quince": "🍎",
+  "Raspberry": "🫐",
+  "Rhubarb": "🌿",
+  "Starfruit": "⭐",
+  "Strawberry": "🍓",
+  "Tangerine": "🍊",
+  "Watermelon": "🍉",
+
+  "Acai": "🫐",
+  "Agave": "🌵",
+  "Almond": "🌰",
+  "Amaranth": "🌾",
+  "Barley": "🌾",
+  "Buckwheat": "🌾",
+  "Cashew": "🌰",
+  "Chia": "🌱",
+  "Coconut": "🥥",
+  "Flax": "🌱",
+  "Hazelnut": "🌰",
+  "Hemp": "🌿",
+  "Macadamia": "🌰",
+  "Millet": "🌾",
+  "Oat": "🌾",
+  "Pecan": "🌰",
+  "Pistachio": "🌰",
+  "Rice": "🍚",
+  "Rye": "🌾",
+  "Sesame": "🌱",
+  "Sorghum": "🌾",
+  "Sunflower": "🌻",
+  "Walnut": "🌰",
+  "Wheat": "🌾",
+
+  "Zebra": "🦓",
+  "Platypus": "🦆",
+  "Aardvark": "🐗",
+  "Albatross": "🕊️",
+  "Alligator": "🐊",
+  "Alpaca": "🦙",
+  "Anchovy": "🐟",
+  "Antelope": "🦌",
+  "Armadillo": "🦔",
+  "Axolotl": "🦎",
+  "Baboon": "🐒",
+  "Badger": "🦡",
+  "Barracuda": "🐟",
+  "Basilisk": "🐍",
+  "Beaver": "🦫",
+  "Bison": "🦬",
+  "Boa": "🐍",
+  "Boar": "🐗",
+  "Buffalo": "🐃",
+  "Camel": "🐪",
+  "Capybara": "🐹",
+  "Cassowary": "🦃",
+  "Catfish": "🐟",
+  "Cheetah": "🐆",
+  "Chinchilla": "🐭",
+  "Chipmunk": "🐿️",
+  "Civet": "🐱",
+  "Cobra": "🐍",
+  "Cockatoo": "🦜",
+  "Coelacanth": "🐟",
+  "Condor": "🦅",
+  "Cougar": "🐆",
+  "Coyote": "🐺",
+  "Crane": "🦢",
+  "Crocodile": "🐊",
+  "Crow": "🐦‍⬛",
+  "Dingo": "🐕",
+  "Dolphin": "🐬",
+  "Donkey": "🫏",
+  "Dragonfly": "🦋",
+  "Duck": "🦆",
+  "Dugong": "🐋",
+  "Eagle": "🦅",
+  "Echidna": "🦔",
+  "Eel": "🐍",
+  "Elephant": "🐘",
+  "Elk": "🦌",
+  "Emu": "🦃",
+  "Falcon": "🦅",
+  "Ferret": "🐀",
+  "Flamingo": "🦩",
+  "Fox": "🦊",
+  "Gazelle": "🦌",
+  "Gecko": "🦎",
+  "Giraffe": "🦒",
+  "Gnu": "🐃",
+  "Gorilla": "🦍",
+  "Grouse": "🐓",
+  "Guanaco": "🦙",
+  "Hamster": "🐹",
+  "Hare": "🐇",
+  "Hawk": "🦅",
+  "Hedgehog": "🦔",
+  "Heron": "🦩",
+  "Hippopotamus": "🦛",
+  "Hyena": "🐕",
+  "Ibex": "🐐",
+  "Iguana": "🦎",
+  "Impala": "🦌",
+  "Jackal": "🐕",
+  "Jaguar": "🐆",
+  "Jellyfish": "🪼",
+  "Kangaroo": "🦘",
+  "Kiwi": "🥝",
+  "Koala": "🐨",
+  "Komodo": "🦎",
+  "Krill": "🦐",
+  "Lemming": "🐭",
+  "Lemur": "🐒",
+  "Leopard": "🐆",
+  "Llama": "🦙",
+  "Lobster": "🦞",
+  "Lynx": "🐈",
+  "Macaw": "🦜",
+  "Manatee": "🦭",
+  "Mandrill": "🐒",
+  "Manta": "🐡",
+  "Marmoset": "🐒",
+  "Meerkat": "🦝",
+  "Mongoose": "🐀",
+  "Moose": "🫎",
+  "Narwhal": "🐋",
+  "Newt": "🦎",
+  "Ocelot": "🐆",
+  "Octopus": "🐙",
+  "Okapi": "🦓",
+  "Opossum": "🦝",
+  "Orangutan": "🦧",
+  "Orca": "🐋",
+  "Ostrich": "🦤",
+  "Otter": "🦦",
+  "Owl": "🦉",
+  "Panda": "🐼",
+  "Panther": "🐆",
+  "Parakeet": "🦜",
+  "Peacock": "🦚",
+  "Pelican": "🦤",
+  "Penguin": "🐧",
+  "Pheasant": "🐓",
+  "Porcupine": "🦔",
+  "Prawn": "🦐",
+  "Puffin": "🐧",
+  "Quail": "🐦",
+  "Quokka": "🐹",
+  "Rabbit": "🐇",
+  "Raccoon": "🦝",
+  "Rattlesnake": "🐍",
+  "Raven": "🐦‍⬛",
+  "Reindeer": "🦌",
+  "Rhinoceros": "🦏",
+  "Salamander": "🦎",
+  "Seahorse": "🦑",
+  "Seal": "🦭",
+  "Shark": "🦈",
+  "Skunk": "🦨",
+  "Sloth": "🦥",
+  "Snail": "🐌",
+  "Sparrow": "🐦",
+  "Squid": "🦑",
+  "Squirrel": "🐿️",
+  "Starfish": "⭐",
+  "Stingray": "🐡",
+  "Swan": "🦢",
+  "Tapir": "🐗",
+  "Tarantula": "🕷️",
+  "Termite": "🐜",
+  "Toad": "🐸",
+  "Toucan": "🦜",
+  "Turtle": "🐢",
+  "Vulture": "🦅",
+  "Wallaby": "🦘",
+  "Walrus": "🦭",
+  "Warthog": "🐗",
+  "Weasel": "🐀",
+  "Whale": "🐋",
+  "Wildebeest": "🐃",
+  "Wolverine": "🦡",
+  "Wombat": "🦔",
+  "Woodpecker": "🐦",
+  "Yak": "🐂"
+};
+
+
+        // Judge comments - add more as needed
+const judgeComments = [
+  "Amazing!",
+  "Bussin!",
+  "Intriguing",
+  "Excellent",
+  "Outstanding",
+  "Brilliant",
+  "Clever",
+  "Inspired",
+  "Impressive",
+  "Bold",
+  "Creative",
+  "Delightful",
+  "Elegant",
+  "Masterful",
+  "Polished",
+  "Refined",
+  "Inventive",
+  "Charming",
+  "Dynamic",
+  "Exceptional",
+  "Fantastic",
+  "Flavorful",
+  "Focused",
+  "Fun!",
+  "Graceful",
+  "Strong",
+  "Savory",
+  "Original",
+  "Memorable",
+  "Balanced",
+  "Ambitious",
+  "Confident",
+  "Distinct",
+  "Lively",
+  "Smooth",
+  "Vibrant",
+  "Playful",
+  "Thoughtful",
+  "Exciting",
+  "Crisp",
+  "Juicy",
+  "Fresh",
+  "Invented",
+  "Modern",
+  "Classic",
+  "Timeless",
+  "Risky",
+  "Courageous",
+  "Daring",
+  "Eye-catching",
+  "Well-done",
+  "On-point",
+  "Inspired choice",
+  "Great execution",
+  "Strong concept",
+  "Nice balance",
+  "Clean",
+  "Precise",
+  "Focused vision",
+  "Unexpected",
+  "Surprising",
+  "Interesting!",
+  "Layered",
+  "Complex",
+  "Deep",
+  "Bright",
+  "Warm",
+  "Comforting",
+  "Inviting",
+  "Energetic",
+  "Smooth finish",
+  "Great texture",
+  "Nicely done",
+  "Very clever",
+  "Well balanced",
+  "Solid",
+  "Reliable",
+  "Crowd-pleasing",
+  "Sophisticated",
+  "Thought-provoking",
+  "Smart",
+  "Artful",
+  "Intentional",
+  "Well considered",
+  "Tasteful",
+  "Refined approach",
+  "Bold choice",
+  "High quality",
+  "Well executed",
+  "Distinctive",
+  "Expressive",
+  "Confident style",
+  "Fun concept",
+  "Creative spark",
+  "Inspired twist",
+  "Unique angle",
+  "Strong finish",
+  "Nice contrast",
+  "Good harmony",
+  "Cohesive",
+  "Balanced energy",
+  "Pleasant",
+  "Enjoyable",
+  "Appealing",
+  "Well layered",
+  "Thoughtful build",
+  "Inventive idea",
+  "Refined touch",
+  "Clean execution",
+  "Strong showing",
+  "Nice rhythm",
+  "Compelling",
+  "Well paced",
+  "Clearly intentional",
+  "Good restraint",
+  "Tastefully done",
+  "Subtle",
+  "Nuanced",
+  "Refined balance",
+  "Creative risk",
+  "Calculated",
+  "Structured",
+  "Nicely framed",
+  "Great clarity",
+  "Purposeful",
+  "Well supported",
+  "Comfortable",
+  "Accessible",
+  "Approachable",
+  "Stylish",
+  "Modern flair",
+  "Classic feel",
+  "Good instinct",
+  "Well chosen",
+  "Imaginative",
+  "Inventive spirit",
+  "Balanced idea",
+  "Thoughtful choice",
+  "Engaging",
+  "Captivating",
+  "Interesting take",
+  "Well refined",
+  "Smooth concept",
+  "Appealing finish",
+  "Good cohesion",
+  "Deliberate",
+  "Confident execution",
+  "Trustworthy",
+  "Nicely restrained",
+  "Taste forward",
+  "Solid idea",
+  "Great direction",
+  "Strong identity",
+  "Recognizable",
+  "Focused approach",
+  "Clear vision",
+  "Well composed",
+  "Well blended",
+  "Comfortably bold",
+  "Refined boldness",
+  "Polished edges",
+  "Good depth",
+  "Layered flavor",
+  "Nice warmth",
+  "Controlled",
+  "Structured creativity",
+  "Appropriate risk",
+  "Well judged",
+
+  // Quirky / neutral / mild curveballs
+  "Peculiar",
+  "Unwieldy",
+  "Unusual",
+  "Oddly charming",
+  "Curious",
+  "Unexpectedly bold",
+  "Strange but fun",
+  "Playfully odd",
+  "Chaotic good",
+  "Offbeat",
+  "Experimental",
+  "Rough but promising",
+  "Awkwardly interesting",
+  "Quirky",
+  "Surprisingly restrained",
+  "Unconventional",
+  "Imperfect charm",
+  "Wild idea",
+  "Controlled chaos"
+ 
+, // 
+  // Loud positive / hype
+  "Incredible!",
+  "Unreal!",
+  "Mind-blowing!",
+  "Wildly good!",
+  "Shockingly fun!",
+  "Absurdly tasty!",
+  "Strangely excellent!",
+  "Dangerous!",
+  "Unhinged brilliance!",
+  "Insanely good!",
+  "Ridiculous in a good way!",
+  "Disturbingly good!",
+  "Unnecessarily delicious!",
+  "Illegal!",
+  "Off the rails!",
+  "Delightfully chaotic!",
+  "Beautiful mess!",
+  "Unfair!",
+  "What just happened?!",
+  "Criminally underrated!",
+  "Unexplainably good!",
+  "Out of control!",
+  "Pure chaos!",
+  "This works!",
+  "This slaps!",
+  "So wrong, so right!",
+  "Confusingly great!",
+  "Absurd success!",
+  "Maximum flavor!",
+  "Way too good!",
+  "Uncalled for!",
+  "Excessive!",
+  "Diabolical!",
+  "Wicked!",
+  "Spellbinding!",
+  "Hauntingly good!",
+  "Ridiculously fun!",
+  "Unsettlingly tasty!",
+  "Chaotically brilliant!",
+  "Reckless genius!",
+  "Ferocious!",
+  "Unholy!",
+  "Menacingly good!",
+  "Uncomfortable excellence!",
+  "Gloriously weird!",
+  "Way better than expected!",
+  "That shouldn’t work!",
+  "And yet…!",
+  "Unapologetic!",
+  "Cursed but perfect!",
+  "Feral!",
+  "Unchained!",
+  "Goblin energy!",
+  "Absolutely feral!",
+  "Unhinged perfection!",
+  "Deranged in the best way!",
+  "Unreasonable!",
+  "Unnecessary… but amazing!",
+  "Unfiltered genius!",
+
+  // Weird-but-positive / uncanny
+  "Oddly satisfying!",
+  "Strangely comforting!",
+  "Disturbingly pleasant!",
+  "Weirdly balanced!",
+  "Questionable but effective!",
+  "Unclear why this works!",
+  "Technically alarming!",
+  "Confusingly elegant!",
+  "Mildly upsetting!",
+  "Uncomfortable harmony!",
+  "Off-putting at first!",
+  "Suspiciously good!",
+  "Unsettling balance!",
+  "This feels illegal!",
+  "I fear I like this!",
+  "Cursed excellence!",
+  "Wrong but correct!",
+  "Absolutely deranged!",
+  "Deliciously unsettling!",
+  "Emotionally confusing!",
+  "Tastefully unhinged!",
+  "Unexpectedly soothing!",
+  "Aggressively pleasant!",
+  "Disturbingly refined!",
+  "Wild but focused!",
+  "Chaotic but controlled!",
+  "Strange magic!",
+  "Inventive chaos!",
+  "Polite anarchy!",
+  "Respectfully unhinged!",
+  "Curated madness!",
+  "Organized chaos!",
+  "High-quality nonsense!",
+  "Carefully reckless!",
+  "Unreasonable confidence!",
+  "Professionally weird!",
+  "Scientifically unproven!",
+  "Suspicious mastery!",
+  "Panic-driven brilliance!",
+  "Methodical insanity!",
+  "Tasteful chaos!",
+  "Wrong energy, right result!",
+  "This has lore!",
+  "This feels cursed!",
+  "Eerily competent!",
+  "Unasked-for excellence!",
+  "Relentlessly creative!",
+
+  // Neutral / odd reactions (no exclamation)
+  "Peculiar",
+  "Unwieldy",
+  "Curious",
+  "Offbeat",
+  "Odd",
+  "Strange",
+  "Unclear",
+  "Confounding",
+  "Mysterious",
+  "Unexpected",
+  "Jarring",
+  "Misleading",
+  "Chaotic",
+  "Unorthodox",
+  "Experimental",
+  "Inexplicable",
+  "Suspicious",
+  "Perplexing",
+  "Confusing",
+  "Disorienting",
+  "Unstable",
+  "Cryptic",
+  "Dubious",
+  "Unfamiliar",
+  "Unpredictable",
+  "Awkward",
+  "Disruptive",
+  "Abstract",
+  "Polarizing",
+  "Uncomfortable",
+  "Questionable",
+  "Baffling",
+  "Imperfect",
+  "Lopsided",
+  "Skewed",
+  "Unbalanced",
+  "Puzzling",
+  "Disjointed",
+  "Unrefined",
+  "Sharp-edged",
+
+  // Two-word weird fillers
+  "Chaos approved!",
+  "Confusion achieved!",
+  "Flavor happened!",
+  "Rules ignored!",
+  "Logic absent!",
+  "Fear inspired!",
+  "Goblin approved!",
+  "Reality questioned!",
+  "Sanity optional!",
+  "Taste prevailed!",
+  "Order dissolved!",
+  "Boundaries erased!",
+  "Physics offended!",
+  "Taste respected!",
+  "Chaos respected!",
+  "Madness contained!",
+  "Rules bent!",
+  "Sense optional!",
+  "Strangeness embraced!"
+ 
+
+, // 
+  // HYPE BRAINROT
+  "This eats! 🔥",
+  "It’s giving excellence! 💅",
+  "Unreasonably hard! 💥",
+  "Why does this work?? 👀",
+  "Actually cracked! 🧠⚡",
+  "Certified heat! 🔥",
+  "This goes crazy! 🤯",
+  "No notes! ✅",
+  "I’m scared… but impressed! 😨✨",
+  "Absolute cinema! 🎥",
+  "Main character energy! 🌟",
+  "Lowkey insane! 😈",
+  "Highkey brilliant! 🚨",
+  "This bangs! 🔊",
+  "Unironically fire! 🔥",
+  "Built different! 💪",
+  "You cooked! 🍳",
+  "Let them cook! 👨‍🍳🔥",
+  "Diabolical (positive)! 😈",
+  "Too powerful! ⚠️",
+  "Beyond expectations! 🚀",
+  "I get it now! 👁️",
+  "Actually legendary! 🏆",
+  "This awakened something! 👀",
+  "Strangely perfect! 🌀",
+  "More than valid! ✅",
+  "Criminally effective! 🚔🔥",
+  "Elite behavior! 👑",
+  "Unreal execution! 🌪️",
+  "Immaculate vibes! ✨",
+
+  // CHAOTIC POSITIVE
+  "Unhinged excellence! 😵‍💫",
+  "Feral but focused! 🐺",
+  "Goblin-approved! 👹✅",
+  "Absolutely feral! 🧌",
+  "Chaos but make it art! 🎨",
+  "This has aura! ✨",
+  "Cosmically correct! 🌌",
+  "Taste achieved! 👅✅",
+  "Physics be damned! 🧪💥",
+  "Unlawful levels of flavor! 🚓",
+  "Rules fear this! 📜😨",
+  "Unreasonably competent! 😤",
+  "Unstable genius! ⚡",
+  "Wrong energy, right answer! 🧠",
+  "Perfectly unwell! 😌",
+  "This shouldn’t exist! 👁️‍🗨️",
+  "Threateningly good! 🚨",
+  "Unacceptable skill! ❌🔥",
+  "Borderline dangerous! ⚠️",
+  "Wildly irresponsible! 🔥",
+  "A controlled disaster! 🌪️",
+  "This has lore! 📜",
+  "I fear this works! 😐✨",
+  "Tastefully cursed! 🕯️",
+  "Chaotic mastery! 🎯",
+  "Unspoken potential! 👀",
+  "Aggressively correct! 💢",
+  "Professionally unhinged! 🧑‍💼😈",
+  "This broke my brain! 🧠💥",
+  "Artfully feral! 🎨🐺",
+
+  // EMOJI HEAVY BRAINROT
+  "🔥🔥🔥",
+  "👀‼️",
+  "💀 (positive)",
+  "😈✨",
+  "🤯✅",
+  "😵‍💫👌",
+  "🧠🔥",
+  "👹💯",
+  "⚠️🔥⚠️",
+  "😤✨",
+  "🌀✅",
+  "🐐 status",
+  "💥 approved",
+  "🧌✅",
+  "👁️👁️",
+  "💫 nailed it",
+  "😮‍💨🔥",
+  "✨ menace",
+  "😈✅",
+  "🚨 good stuff",
+  "💯💯💯",
+  "🔥 no notes",
+  "👀 certified",
+  "🧠 activated",
+
+  // WEIRD NEUTRAL / CURIOUS
+  "Peculiar",
+  "Unwieldy",
+  "Unsettling",
+  "Curious",
+  "Suspicious",
+  "Mildly alarming",
+  "Oddly shaped",
+  "Strange but present",
+  "Unclear intentions",
+  "Questionable logic",
+  "Unbalanced",
+  "Chaotic neutral",
+  "Disorienting",
+  "Cryptic",
+  "Unfamiliar",
+  "Abstract",
+  "Experimental",
+  "Confounding",
+  "Unpredictable",
+  "Curiously effective",
+  "Awkward, but",
+  "Misleading",
+  "Inexplicable",
+  "Unexpected form",
+  "Untamed",
+  "Rough edges",
+  "Off-script",
+  "Unorthodox",
+  "Slightly feral",
+  "Unstable energy",
+
+  // SHORT BRAINROT ONE-LINERS
+  "This slaps! 🔥",
+  "I see the vision! 👁️",
+  "We ball! 🏀",
+  "No brakes! 🚗💨",
+  "Trust the chaos! 🌀",
+  "Cooked too hard! 🍳🔥",
+  "Vision realized! ✨",
+  "Concept stands! 🧠",
+  "Aura detected! 💫",
+  "Mission complete! ✅",
+  "Handled! 💪",
+  "Executed! 🎯",
+  "Approved by goblins! 👹",
+  "Taste prevails! 🏆",
+  "Chaos respected! 🫡",
+  "Madness contained! 🧪",
+  "Energy unmatched! ⚡",
+  "Unhinged but valid! ✅",
+  "This cleared! 🧹",
+  "Certified chaos! ✅",
+
+  // FINAL UNHINGED
+  "I don’t understand it but I respect it! 🤝",
+  "Fear-based excellence! 😨✨",
+  "Aggressively competent! 💢",
+  "A menace to norms! 🚫",
+  "This defies explanation! 🧠",
+  "Unapologetically strange! 😈",
+  "Reality slightly bent! 🌌",
+  "Taste confirmed! ✅",
+  "Logic optional, results delivered! 📦",
+  "Somehow immaculate! ✨",
+  "Absolute goblincore! 🧌",
+  "Threateningly polished! ⚠️",
+  "Unreasonably effective! 🚀",
+  "Perfectly chaotic! 🌀"
+ 
+
+, // 
+  "I wish I didn’t understand this… but I do.",
+  "This feels like forbidden knowledge.",
+  "Something ancient approved this.",
+  "I will think about this later against my will.",
+  "This has been seen by eyes that shouldn’t exist.",
+
+  "This knowledge cannot be unlearned.",
+  "Time reacted strangely to this.",
+  "This feels pre-approved by fate.",
+  "I wasn’t ready, but it happened anyway.",
+  "This leaves a mark, conceptually.",
+
+  "This bypassed my expectations entirely.",
+  "Something clicked that can’t unclick.",
+  "This knows something I don’t.",
+  "This feels remembered, not discovered.",
+  "I feel like this already existed.",
+
+  "This resonates at an uncomfortable frequency.",
+  "I’m unsure when this started working.",
+  "This answers a question I didn’t ask.",
+  "I will measure other things against this.",
+  "This refuses to be forgotten.",
+
+  "This feels older than my opinion.",
+  "I don’t recall agreeing, but I approve.",
+  "This rearranged something internally.",
+  "This arrived fully formed.",
+  "I was not consulted, yet here we are.",
+
+  "This feels inevitable in hindsight.",
+  "Something about this feels witnessed.",
+  "This remains even after it ends.",
+  "This has consequences, probably.",
+  "This asserts itself quietly.",
+
+  "This feels intentional in a way I can’t explain.",
+  "This lingers where it shouldn’t.",
+  "I feel oddly accounted for.",
+  "This insists upon itself.",
+  "This knows when you’re looking at it.",
+
+  "This changed the scale I was using.",
+  "This makes earlier choices feel suspicious.",
+  "This resists dismissal.",
+  "This feels like it was always an option.",
+  "I am not neutral anymore.",
+
+  "This understands context too well.",
+  "This feels directed at no one in particular.",
+  "This occupies more space than expected.",
+  "This did not ask permission.",
+  "I feel referenced.",
+
+  "This answers something unsaid.",
+  "This adjusts the baseline.",
+  "This assumes you’ll keep thinking about it.",
+  "This arrived before I was ready.",
+  "This does not explain itself.",
+
+  "This seems aware of its timing.",
+  "This functions whether you want it to or not.",
+  "This feels acknowledged.",
+  "This will resurface later.",
+  "This has already been processed somewhere else.",
+
+  "This settles in quietly.",
+  "This makes silence feel different.",
+  "This leaves no obvious exit.",
+  "This feels archived.",
+  "This registers as complete.",
+
+  "This believes in itself more than I do.",
+  "This does not require defense.",
+  "This has presence.",
+  "This feels finalized.",
+  "This watches you reconsider it.",
+
+  "This is difficult to place, and that matters.",
+  "This feels counted.",
+  "This closes a loop I didn’t know was open.",
+  "This behaves like a conclusion.",
+  "This changes what came before it."
+ 
+
+, // ultraRareCursedMore = [
+  "This feels like it checked something off.",
+  "This behaves like it was expected.",
+  "I feel strangely acknowledged.",
+  "This arrived with confidence.",
+  "This does not feel optional.",
+
+  "This fits too well.",
+  "This found its place immediately.",
+  "This resists reinterpretation.",
+  "This establishes a precedent.",
+  "This settles the matter.",
+
+  "This makes alternatives feel theoretical.",
+  "This feels quietly complete.",
+  "This occupies its role fully.",
+  "This arrived without friction.",
+  "This doesn’t linger — it stays.",
+
+  "This implies prior consent.",
+  "This feels self-assured.",
+  "This closes something.",
+  "This registers as final.",
+  "This redefines what counts.",
+
+  "This doesn’t seek approval.",
+  "This assumes you’ll accept it.",
+  "This feels internally consistent.",
+  "This displaces the need for explanation.",
+  "This resolves a tension retroactively.",
+
+  "This makes other options feel excessive.",
+  "This persists across reconsideration.",
+  "This does not weaken over time.",
+  "This has already settled.",
+  "This feels confirmed.",
+
+  "This exists comfortably.",
+  "This does not wobble.",
+  "This keeps its shape.",
+  "This seems uninterested in doubt.",
+  "This recognizes itself.",
+
+  "This arrives intact.",
+  "This makes room for itself.",
+  "This discourages revision.",
+  "This remains unaffected.",
+  "This was never provisional.",
+
+  "This stabilizes the outcome.",
+  "This renders comparison unnecessary.",
+  "This locks into place.",
+  "This removes uncertainty.",
+  "This behaves like a solution.",
+
+  "This leaves no loose ends.",
+  "This does not echo — it anchors.",
+  "This refuses decay.",
+  "This holds.",
+  "This concludes quietly.",
+
+  "This operates without tension.",
+  "This does not drift.",
+  "This stays accounted for.",
+  "This persists cleanly.",
+  "This needs no aftermath.",
+
+  "This belongs where it landed.",
+  "This withstands inspection.",
+  "This does not ask again.",
+  "This already knows the answer.",
+  "This does not require adjustment.",
+
+  "This appears resolved.",
+  "This completes itself.",
+  "This remains intact.",
+  "This behaves decisively.",
+  "This asserts completion."
+];
+
+
+ 
+        let gameState = {
+            salt: '',
+            contestants: [],
+            currentRound: 1,
+            brackets: [],
+            currentBattleIndex: 0,
+            roundWinners: [],
+            revealed: false,
+            usedComments: []
+        };
+
+        function normalizeUsername(name) {
+            return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        function getTimestamp() {
+            const now = new Date();
+            return now.getFullYear() + 
+                   String(now.getMonth() + 1).padStart(2, '0') +
+                   String(now.getDate()).padStart(2, '0') +
+                   String(now.getHours()).padStart(2, '0') +
+                   String(now.getMinutes()).padStart(2, '0') +
+                   String(now.getSeconds()).padStart(2, '0');
+        }
+
+        function generateDish(username, salt) {
+            const normalized = normalizeUsername(username);
+            const hash = md5(normalized + '~' + salt);
+            
+            const adjIdx = parseInt(hash.substring(0, 8), 16) % adjectives.length;
+            const adj = adjectives[adjIdx];
+            
+            const isAnimal = parseInt(hash.substring(8, 16), 16) % 2 === 0;
+            let ingredient, desc;
+            
+            if (isAnimal) {
+                const ingIdx = parseInt(hash.substring(16, 24), 16) % animals.length;
+                ingredient = animals[ingIdx];
+                const descIdx = parseInt(hash.substring(24, 32), 16) % animalDescriptions.length;
+                desc = animalDescriptions[descIdx];
+            } else {
+                const ingIdx = parseInt(hash.substring(16, 24), 16) % nonAnimals.length;
+                ingredient = nonAnimals[ingIdx];
+                const descIdx = parseInt(hash.substring(24, 32), 16) % nonAnimalDescriptions.length;
+                desc = nonAnimalDescriptions[descIdx];
+            }
+            
+            const emoji = ingredientEmojis[ingredient] || '🍽️';
+            return { text: `${adj} ${ingredient} ${desc}`, emoji: emoji };
+        }
+
+        function getWinnerHash(round, username, salt) {
+            const normalized = normalizeUsername(username);
+            return md5(`${round}~${normalized}~${salt}`);
+        }
+
+        function createBrackets(contestants, salt) {
+            const numContestants = contestants.length;
+            
+            if (numContestants === 1) {
+                return [[contestants[0]]];
+            }
+            
+            const sorted = contestants.slice().sort((a, b) => {
+                const hashA = md5(normalizeUsername(a) + '~' + salt);
+                const hashB = md5(normalizeUsername(b) + '~' + salt);
+                return hashA.localeCompare(hashB);
+            });
+            
+            let groupSize = Math.min(4, numContestants);
+            let numGroups = Math.ceil(numContestants / groupSize);
+            
+            const brackets = [];
+            let idx = 0;
+            
+            for (let i = 0; i < numGroups; i++) {
+                const remainingContestants = numContestants - idx;
+                const remainingGroups = numGroups - i;
+                const size = Math.ceil(remainingContestants / remainingGroups);
+                brackets.push(sorted.slice(idx, idx + size));
+                idx += size;
+            }
+            
+            const sizes = brackets.map(b => b.length);
+            const maxSize = Math.max(...sizes);
+            const minSize = Math.min(...sizes);
+            
+            if (maxSize - minSize > 1) {
+                const avgSize = Math.floor(numContestants / numGroups);
+                const newBrackets = [];
+                idx = 0;
+                for (let i = 0; i < numGroups; i++) {
+                    const size = i < (numContestants % numGroups) ? avgSize + 1 : avgSize;
+                    newBrackets.push(sorted.slice(idx, idx + size));
+                    idx += size;
+                }
+                return newBrackets;
+            }
+            
+            return brackets;
+        }
+
+        function toggleMd5(element) {
+            const md5Info = element.querySelector('.md5-info');
+            if (md5Info) {
+                md5Info.style.display = md5Info.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function getJudgeComment() {
+            // Try to get an unused comment first
+            const availableComments = judgeComments.filter(c => !gameState.usedComments.includes(c));
+            
+            let comment;
+            if (availableComments.length > 0) {
+                // Use an unused comment
+                comment = availableComments[Math.floor(Math.random() * availableComments.length)];
+                gameState.usedComments.push(comment);
+            } else {
+                // All comments used, allow duplicates
+                comment = judgeComments[Math.floor(Math.random() * judgeComments.length)];
+            }
+            
+            return comment;
+        }
+
+        function capitalizeProperName(name) {
+            // Capitalize first letter and any letter after a non-alpha character
+            return name.replace(/(^|[^a-zA-Z])([a-z])/g, (match, nonAlpha, letter) => {
+                return nonAlpha + letter.toUpperCase();
+            });
+        }
+
+        function getJudgeName(currentBracket) {
+            // Get all contestants NOT in current bracket
+            const currentContestants = currentBracket.map(c => normalizeUsername(c));
+            const availableJudges = gameState.contestants.filter(c => 
+                !currentContestants.includes(normalizeUsername(c))
+            );
+            
+            if (availableJudges.length > 0) {
+                // Pick a random contestant not in this battle
+                const judge = availableJudges[Math.floor(Math.random() * availableJudges.length)];
+                return "Judge " + capitalizeProperName(judge);
+            } else {
+                // Only one bracket (all contestants competing), use Judge #1, #2, #3
+                const judgeNumber = Math.floor(Math.random() * 3) + 1;
+                return `Judge #${judgeNumber}`;
+            }
+        }
+
+        function startTournament() {
+            const input = document.getElementById('contestants').value;
+            const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+            
+            const uniqueMap = new Map();
+            lines.forEach(name => {
+                const normalized = normalizeUsername(name);
+                if (!uniqueMap.has(normalized)) {
+                    uniqueMap.set(normalized, name);
+                }
+            });
+            
+            const contestants = Array.from(uniqueMap.values());
+            
+            if (contestants.length < 2) {
+                alert('Need at least 2 contestants!');
+                return;
+            }
+            
+            gameState.salt = getTimestamp();
+            gameState.contestants = contestants;
+            gameState.currentRound = 1;
+            gameState.currentBattleIndex = 0;
+            gameState.roundWinners = [];
+            gameState.revealed = false;
+            gameState.usedComments = [];
+            
+            gameState.brackets = createBrackets(contestants, gameState.salt);
+            
+            document.querySelector('.setup-screen').classList.remove('active');
+            document.querySelector('.battle-screen').classList.add('active');
+            document.getElementById('header').classList.add('hidden');
+            
+            displayBattle();
+        }
+
+        function displayBattle() {
+            const bracket = gameState.brackets[gameState.currentBattleIndex];
+            const totalBrackets = gameState.brackets.length;
+            
+            const remaining = gameState.contestants.length;
+            document.getElementById('roundInfo').textContent = `Round ${gameState.currentRound} - ${remaining} Chefs Competing`;
+            document.getElementById('battleInfo').textContent = `Battle ${gameState.currentBattleIndex + 1} of ${totalBrackets}`;
+            
+            const battleDiv = document.getElementById('battleBracket');
+            let html = `<div class="bracket-title">Kitchen Arena ${gameState.currentBattleIndex + 1}</div>`;
+            
+            bracket.forEach(contestant => {
+                const dishObj = generateDish(contestant, gameState.salt);
+                const winnerHash = getWinnerHash(gameState.currentRound, contestant, gameState.salt);
+                const normalized = normalizeUsername(contestant);
+                const inputString = `${gameState.currentRound}~${normalized}~${gameState.salt}`;
+                
+                html += `
+                    <div class="contestant" data-username="${contestant}" onclick="toggleMd5(this)">
+                        <div class="contestant-header">
+                            <div class="contestant-name">${contestant}</div>
+                            <div class="dish">
+                                <span class="dish-emoji">${dishObj.emoji}</span>
+                                <span>${dishObj.text}</span>
+                            </div>
+                        </div>
+                        <div class="md5-info">
+                            <strong>Input:</strong> ${inputString}<br>
+                            <strong>MD5:</strong> ${winnerHash}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            battleDiv.innerHTML = html;
+            
+            document.getElementById('revealBtn').style.display = 'inline-block';
+            document.getElementById('nextBattleBtn').style.display = 'none';
+            gameState.revealed = false;
+        }
+
+        function revealWinner() {
+            if (gameState.revealed) return;
+            
+            gameState.revealed = true;
+            const bracket = gameState.brackets[gameState.currentBattleIndex];
+            
+            let winnerName = null;
+            let lowestHash = null;
+            
+            bracket.forEach(contestant => {
+                const hash = getWinnerHash(gameState.currentRound, contestant, gameState.salt);
+                if (lowestHash === null || hash < lowestHash) {
+                    lowestHash = hash;
+                    winnerName = contestant;
+                }
+            });
+            
+            gameState.roundWinners.push(winnerName);
+            
+            // Get judge name and comment
+            const judgeName = getJudgeName(bracket);
+            const comment = getJudgeComment();
+            
+            const contestantDivs = document.querySelectorAll('.contestant');
+            contestantDivs.forEach(div => {
+                const username = div.getAttribute('data-username');
+                if (username === winnerName) {
+                    div.classList.add('winner');
+                    // Add judge comment to winner
+                    const judgeCommentDiv = document.createElement('div');
+                    judgeCommentDiv.className = 'judge-comment';
+                    judgeCommentDiv.textContent = `${judgeName}: ${comment}`;
+                    div.appendChild(judgeCommentDiv);
+                } else {
+                    div.classList.add('loser');
+                }
+            });
+            
+            document.getElementById('revealBtn').style.display = 'none';
+            
+            if (gameState.currentBattleIndex < gameState.brackets.length - 1) {
+                document.getElementById('nextBattleBtn').textContent = 'Next Battle';
+                document.getElementById('nextBattleBtn').style.display = 'inline-block';
+            } else {
+                if (gameState.roundWinners.length > 1) {
+                    document.getElementById('nextBattleBtn').textContent = 'Next Round';
+                    document.getElementById('nextBattleBtn').style.display = 'inline-block';
+                } else {
+                    setTimeout(() => {
+                        showChampion();
+                    }, 1500);
+                }
+            }
+        }
+
+        function nextBattle() {
+            if (gameState.currentBattleIndex < gameState.brackets.length - 1) {
+                gameState.currentBattleIndex++;
+                displayBattle();
+            } else {
+                gameState.currentRound++;
+                gameState.contestants = gameState.roundWinners;
+                gameState.roundWinners = [];
+                gameState.currentBattleIndex = 0;
+                gameState.brackets = createBrackets(gameState.contestants, gameState.salt);
+                displayBattle();
+            }
+        }
+
+        function showChampion() {
+            document.querySelector('.battle-screen').classList.remove('active');
+            document.querySelector('.champion-screen').classList.add('active');
+            
+            document.getElementById('championDiv').innerHTML = 
+                `<div class="champion">🏆 ${gameState.contestants[0]} 🏆<br>MD5 CHEF CHAMPION!</div>`;
+        }
+
+        function playAgain() {
+            document.querySelector('.champion-screen').classList.remove('active');
+            document.querySelector('.setup-screen').classList.add('active');
+            document.getElementById('header').classList.remove('hidden');
+            
+            gameState = {
+                salt: '',
+                contestants: [],
+                currentRound: 1,
+                brackets: [],
+                currentBattleIndex: 0,
+                roundWinners: [],
+                revealed: false,
+                usedComments: []
+            };
+        }
+    </script>
+</body>
+</html>
